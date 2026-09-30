@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasaporte Trófico - Bacalar Quest</title>
+    <style>
+        /* VARIABLES DE DISEÑO (Cambia los colores aquí para adaptarlo a tu arte) */
+        :root {
+            --bg-color: #f4eae1;
+            --passport-cover: #1c352d;
+            --passport-page: #fbf7f0;
+            --text-dark: #2b2b2b;
+            --accent-green: #2a5c43;
+            --accent-red: #b84a39;
+            --accent-yellow: #dca134;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--passport-cover);
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Sistema de Filtros / Tags Rápidos */
+        .filter-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 500px;
+            padding: 5px 0 15px 0;
+            scrollbar-width: none;
+        }
+        .filter-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tag-btn {
+            background: white;
+            border: 1.5px solid var(--passport-cover);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            background: var(--passport-cover);
+            color: white;
+        }
+
+        /* Estructura del Pasaporte (Librito) */
+        .passport-book {
+            background-color: var(--passport-cover);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 2px solid #d4af37; /* Toque dorado clásico de pasaporte */
+        }
+
+        .passport-page {
+            background-color: var(--passport-page);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+        }
+
+        /* Lienzo Artístico: El espacio donde se estampa tu Sello */
+        .stamp-canvas {
+            width: 130px;
+            height: 130px;
+            margin: 10px auto;
+            border: 2.5px dashed #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        /* Animación cuando metes el código correcto */
+        .stamp-canvas.unlocked {
+            border: 3px solid var(--accent-green);
+            background: #eef9f3;
+            animation: stampAnimation 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes stampAnimation {
+            0% { transform: scale(3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Tu ilustración artística */
+        .stamp-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .stamp-placeholder {
+            font-size: 2.5rem;
+            opacity: 0.3;
+            transition: all 0.2s ease;
+        }
+
+        /* Información del Lugar */
+        .node-info {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .node-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--passport-cover);
+        }
+
+        .node-hint {
+            font-size: 0.9rem;
+            margin: 8px 0;
+            line-height: 1.3;
+            color: #555;
+            font-style: italic;
+        }
+
+        /* Formulario de Validación */
+        .validation-box {
+            display: flex;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .code-input {
+            flex: 1;
+            padding: 10px;
+            border: 1.5px solid #bbb;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--passport-cover);
+        }
+
+        .validate-btn {
+            background-color: var(--passport-cover);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .validate-btn:hover {
+            background-color: #264a3f;
+        }
+
+        /* Navegación de Páginas */
+        .passport-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--passport-cover);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-counter {
+            font-size: 0.85rem;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        /* Pantalla de Éxito / Compartir */
+        .share-screen {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .share-btn {
+            background-color: #2a5c43;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-msg {
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 5px;
+            height: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Bacalar Quest</h1>
+        <p>El Pasaporte Trófico de Exploración Local Consciente 🌿</p>
+    </header>
+
+    <!-- Filtros Rápidos -->
+    <div class="filter-container">
+        <button class="tag-btn active" onclick="filterCategory('all')">✨ Todos</button>
+        <button class="tag-btn" onclick="filterCategory('Bebidas')">💧 Bebidas</button>
+        <button class="tag-btn" onclick="filterCategory('Comida')">🌮 Comida</button>
+        <button class="tag-btn" onclick="filterCategory('Cultura')">🎨 Cultura</button>
+        <button class="tag-btn" onclick="filterCategory('Abasto')">🛒 Abasto</button>
+    </div>
+
+    <!-- Pasaporte -->
+    <div class="passport-book">
+        
+        <!-- Páginas Dinámicas -->
+        <div id="passportPage" class="passport-page"></div>
+
+        <!-- Pantalla Final de Éxito -->
+        <div id="shareScreen" class="passport-page share-screen">
+            <div style="margin: auto;">
+                <span style="font-size: 4rem;">🏆</span>
+                <h2 style="color: var(--passport-cover); margin: 10px 0;">¡Pasaporte Completado!</h2>
+                <p style="font-size: 0.95rem; line-height: 1.4; color: #444;">
+                    Has recorrido el Bacalar real y autónomo. Tu dinero fortaleció al tejido familiar del pueblo y hackeaste el circuito extractor corporativo.
+                </p>
+                <button class="share-btn" onclick="sharePassport()">
+                    📸 Compartir mi Insignia con el Grupo
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Controles del Librito -->
+    <div class="passport-nav" id="navControls">
+        <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">◀ Anterior</button>
+        <span class="page-counter" id="pageIndicator">Pág. 1 de 1</span>
+        <button class="nav-btn" id="nextBtn" onclick="changePage(1)">Siguiente ▶</button>
+    </div>
+
+    <script>
+        // LIENZO DE DATOS EDITABLE: Modifica las pistas, los códigos secretos y los nombres aquí.
+        const nodesDatabase = [
+            {
+                id: "nodo_daisy",
+                title: "Frutería Daisy",
+                category: "Bebidas",
+                hint_es: "Camina tres cuadras detrás de la costera en el barrio tradicional. Encuentra el local y busca la palabra clave anotada con gis en su pizarra de frutas.",
+                hint_en: "Walk three blocks behind the coastal strip. Find the shop and look for the secret password written in chalk on their fruit board.",
+                secretCode: "MANGO26", // Código físico real de la pared/pizarrón
+                imgSrc: "imagenes/sello_daisy.png", // RUTA DE TU IMAGEN ARTÍSTICA CUANDO SE DESBLOQUEE
+                placeholderEmoji: "🍊",
+                unlocked: false},
+{
+id: "nodo_mural",
+title: "Mural de la Selva",
+category: "Cultura",
+hint_es: "Explora la esquina de la Calle 22. Admira el mural comunitario y localiza la pequeña palabra pintada sutilmente cerca del jaguar.",
+hint_en: "Explore the corner of 22nd Street. Admire the community mural and find the small word painted subtly near the jaguar.",
+secretCode: "JAGUAR",
+imgSrc: "imagenes/sello_mural.png", // OTRA RUTA PARA TU ARTE
+placeholderEmoji: "🐆",
+unlocked: false
+},
+{
+id: "nodo_loncheria",
+title: "Antojitos El Centro",
+category: "Comida",
+hint_es: "Disfruta de unos salbutes tradicionales fuera del circuito turístico. El código secreto está impreso al reverso de su ticket.",
+hint_en: "Enjoy traditional salbutes outside the tourist circuit. The daily secret code is printed cleanly on the back of your receipt.",
+secretCode: "SALBUT",
+imgSrc: "imagenes/sello_loncheria.png",
+placeholderEmoji: "🌮",
+unlocked: false
+},
+{
+id: "nodo_dunosusa",
+title: "Dunosusa Regional",
+category: "Abasto",
+hint_es: "Nuestra alternativa justa ante el monopolio de Oxxo. Encuentra el código protector de la península pegado junto a la caja principal.",
+hint_en: "Our fair alternative to the Oxxo monopoly. Find the peninsula's protective code posted next to the main register.",
+secretCode: "REGIONAL",
+imgSrc: "imagenes/sello_dunosusa.png",
+placeholderEmoji: "🛒",
+unlocked: false
+}
+];
+let filteredNodes = [...nodesDatabase];
+let currentPageIndex = 0;
+function initApp() {
+renderPage();
+}
+function renderPage() {
+const pageContainer = document.getElementById("passportPage");
+const shareScreen = document.getElementById("shareScreen");
+const navControls = document.getElementById("navControls");
+// Si todos los sellos de la base de datos están desbloqueados, activa la pantalla de éxito
+const allUnlocked = nodesDatabase.every(n => n.unlocked);
+if (allUnlocked) {
+pageContainer.style.display = "none";
+shareScreen.style.display = "block";
+navControls.style.display = "none";
+return;
+}
+pageContainer.style.display = "flex";
+shareScreen.style.display = "none";
+navControls.style.display = "flex";
+if (filteredNodes.length === 0) {
+pageContainer.innerHTML = <div style="margin:auto; text-align:center; opacity:0.6;">No hay misiones en esta categoría por ahora.</div>;
+document.getElementById("pageIndicator").innerText = "Pág. 0 de 0";
+document.getElementById("prevBtn").disabled = true;
+document.getElementById("nextBtn").disabled = true;
+return;
+}
+const node = filteredNodes[currentPageIndex];
+pageContainer.innerHTML = `
+
+
+📍 ${node.category}
+
+${node.title}
+"${node.hint_es}"
+"${node.hint_en}"
+${node.placeholderEmoji}
+
+<input type="text" id="input_${node.id}" class="code-input" placeholder="Código Físico / Code" ${node.unlocked ? 'disabled' : ''} value="${node.unlocked ? 'SELLO RECOLECTADO ✓' : ''}">
+<button class="validate-btn" onclick="validateCode('${node.id}')" ${node.unlocked ? 'disabled' : ''}>Sellar
+
+
+
+`;
+document.getElementById("pageIndicator").innerText = Pág. ${currentPageIndex + 1} de ${filteredNodes.length};
+document.getElementById("prevBtn").disabled = currentPageIndex === 0;
+document.getElementById("nextBtn").disabled = currentPageIndex === filteredNodes.length - 1;
+}
+function changePage(direction) {
+currentPageIndex += direction;
+renderPage();
+}
+function filterCategory(category) {
+const buttons = document.querySelectorAll(".tag-btn");
+buttons.forEach(btn => btn.classList.remove("active"));
+event.target.classList.add("active");
+if (category === 'all') {
+filteredNodes = [...nodesDatabase];
+} else {
+filteredNodes = nodesDatabase.filter(n => n.category === category);
+}
+currentPageIndex = 0;
+renderPage();
+}
+function validateCode(nodeId) {
+const node = nodesDatabase.find(n => n.id === nodeId);
+const inputVal = document.getElementById(input_${nodeId}).value.trim().toUpperCase();
+const feedback = document.getElementById(feedback_${nodeId});
+if (inputVal === node.secretCode.toUpperCase()) {
+node.unlocked = true;
+feedback.style.color = "var(--accent-green)";
+feedback.innerText = "¡Sello desbloqueado! 🌿";
+setTimeout(() => {
+renderPage();
+}, 800);
+} else {
+feedback.style.color = "var(--accent-red)";
+feedback.innerText = "Código incorrecto. Revisa el lugar físico. 🛑";
+}
+}
+function sharePassport() {
+alert("¡Lienzo de compartido activo! Aquí puedes integrar la API de compartir de tu cel para subir tu captura a los grupos de la comunidad.");
+}
+window.onload = initApp;
+</script>
+
+</body>
+</html>
